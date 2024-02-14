@@ -289,13 +289,12 @@ model HealthTip {
 
 // Action Privileges
 model ActionPrivilege {
-  id                   Int              @id @default(autoincrement())
-  createdAt            DateTime         @default(now())
+  id                   Int      @id @default(autoincrement())
+  createdAt            DateTime @default(now())
   createdBy            String?
   actionPrivilegeCode  String?
   descriptionOfPurpose String?
-  ManagementStaff      ManagementStaff? @relation(fields: [managementStaffId], references: [id])
-  managementStaffId    Int?
+  ManagementStaffIds   Int[]
 }
 
 // Management Staffs
