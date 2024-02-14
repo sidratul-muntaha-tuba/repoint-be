@@ -1,0 +1,412 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Users
+model User {
+  id                        Int                  @id @default(autoincrement())
+  firstName                 String?
+  lastName                  String?
+  email                     String               @unique
+  password                  String
+  dateOfBirth               DateTime?
+  profileCompletion         Float?
+  photoUrl                  String?
+  gender                    String?
+  houseAddress              String?
+  nationality               String?
+  nidUrl                    String?
+  phoneNumber               String?
+  emergencyContactNumber    String?
+  profileVerificationStatus String?
+  profileVerifiedBy         String?
+  userType                  UserType?            @relation(fields: [userTypeId], references: [id])
+  securityQuestion          String?
+  securityAnswer            String?
+  createdAt                 DateTime             @default(now())
+  createdBy                 String?
+  updatedAt                 DateTime             @updatedAt
+  updatedBy                 String?
+  userTypeId                Int?
+  Patient                   Patient[]
+  Doctor                    Doctor[]
+  Intern                    Intern[]
+  Translator                Translator[]
+  Holiday                   Holiday[]
+  Schedule                  Schedule[]
+  medicalReportId           Int?
+  medicalPrescriptionId     Int?
+  MedicalReport             MedicalReport?       @relation(fields: [medicalReportId], references: [id])
+  MedicalPrescription       MedicalPrescription? @relation(fields: [medicalPrescriptionId], references: [id])
+}
+
+// User Types
+model UserType {
+  id        Int      @id @default(autoincrement())
+  roleName  String
+  createdAt DateTime @default(now())
+  createdBy String?
+  User      User[]
+}
+
+// Patients
+model Patient {
+  id                  Int                   @id @default(autoincrement())
+  user                User                  @relation(fields: [userId], references: [id])
+  medicalPrescription MedicalPrescription[]
+  languages           Language[]
+  userId              Int
+  MedicalReport       MedicalReport[]
+  Appointment         Appointment[]
+  Meeting             Meeting[]
+}
+
+// Doctors
+model Doctor {
+  id                      Int                   @id @default(autoincrement())
+  user                    User                  @relation(fields: [userId], references: [id])
+  schedule                Schedule?             @relation(fields: [scheduleId], references: [id])
+  holiday                 Holiday?              @relation(fields: [holidayId], references: [id])
+  workExperience          WorkExperience?       @relation(fields: [workExperienceId], references: [id])
+  degree                  String?
+  professionalIdUrl       String?
+  professionalIdNo        String?
+  workEmail               String?
+  whatsAppContactNumber   String?
+  personalAssistantNumber String?
+  languages               Language[]
+  userId                  Int
+  scheduleId              Int?
+  holidayId               Int?
+  workExperienceId        Int?
+  MedicalReport           MedicalReport[]
+  MedicalPrescription     MedicalPrescription[]
+  Appointment             Appointment[]
+  Meeting                 Meeting[]
+}
+
+// Interns
+model Intern {
+  id                    Int                  @id @default(autoincrement())
+  user                  User                 @relation(fields: [userId], references: [id])
+  degree                String?
+  workExperience        WorkExperience?      @relation(fields: [workExperienceId], references: [id])
+  professionalIdUrl     String?
+  professionalIdNo      String?
+  workEmail             String?
+  languages             Language[]
+  userId                Int
+  workExperienceId      Int?
+  MedicalReport         MedicalReport?       @relation(fields: [medicalReportId], references: [id])
+  medicalReportId       Int?
+  MedicalPrescription   MedicalPrescription? @relation(fields: [medicalPrescriptionId], references: [id])
+  medicalPrescriptionId Int?
+}
+
+// Translators
+model Translator {
+  id                Int             @id @default(autoincrement())
+  user              User            @relation(fields: [userId], references: [id])
+  degree            String?
+  workExperience    WorkExperience? @relation(fields: [workExperienceId], references: [id])
+  professionalIdUrl String?
+  professionalIdNo  String?
+  workEmail         String?
+  languages         Language[]
+  userId            Int
+  workExperienceId  Int?
+  Meeting           Meeting[]
+}
+
+// Work Experiences
+model WorkExperience {
+  id                 Int               @id @default(autoincrement())
+  title              String?
+  role               String?
+  description        String?
+  organizationHosted String?
+  startingTime       DateTime?
+  endingTime         DateTime?
+  currentlyWorking   Boolean?
+  totalDuration      String?
+  Doctor             Doctor[]
+  Intern             Intern[]
+  Translator         Translator[]
+  ManagementStaff    ManagementStaff[]
+}
+
+// Holidays
+model Holiday {
+  id                      Int               @id @default(autoincrement())
+  user                    User              @relation(fields: [userId], references: [id])
+  additionalHolidaysArray String?
+  Doctor                  Doctor[]
+  userId                  Int
+  ManagementStaff         ManagementStaff[]
+}
+
+// Schedules
+model Schedule {
+  id              Int               @id @default(autoincrement())
+  user            User              @relation(fields: [userId], references: [id])
+  sat             String?
+  sun             String?
+  mon             String?
+  tue             String?
+  wed             String?
+  thu             String?
+  fri             String?
+  Doctor          Doctor[]
+  userId          Int
+  ManagementStaff ManagementStaff[]
+}
+
+// Medical Reports
+model MedicalReport {
+  id                            Int                  @id @default(autoincrement())
+  patient                       Patient              @relation(fields: [patientId], references: [id])
+  doctor                        Doctor               @relation(fields: [doctorId], references: [id])
+  internsWhoVerified            Intern[]
+  bills                         Bill[]
+  transactions                  Transaction[]
+  viewers                       Int[]
+  downloaders                   Int[]
+  associatedMedicalPrescription MedicalPrescription? @relation(fields: [medicalPrescriptionId], references: [id])
+  reportUrl                     String?
+  patientId                     Int
+  doctorId                      Int
+  medicalPrescriptionId         Int?
+  Meeting                       Meeting?             @relation(fields: [meetingId], references: [id])
+  meetingId                     Int?
+  User                          User[]
+}
+
+// Medical Prescriptions
+model MedicalPrescription {
+  id                       Int             @id @default(autoincrement())
+  patient                  Patient         @relation(fields: [patientId], references: [id])
+  doctor                   Doctor          @relation(fields: [doctorId], references: [id])
+  internsWhoVerified       Intern[]
+  bills                    Bill[]
+  transactions             Transaction[]
+  viewers                  Int[]
+  downloaders              Int[]
+  associatedMedicalReports MedicalReport[]
+  doctorComment            String?
+  prescriptionUrl          String?
+  patientId                Int
+  doctorId                 Int
+  Appointment              Appointment?    @relation(fields: [appointmentId], references: [id])
+  appointmentId            Int?
+  Meeting                  Meeting?        @relation(fields: [meetingId], references: [id])
+  meetingId                Int?
+  User                     User[]
+}
+
+// OTPs
+model OTP {
+  id              Int       @id @default(autoincrement())
+  securityMessage String?
+  purpose         String?
+  otpFor          String?
+  createdTime     DateTime?
+  expirationTime  DateTime?
+}
+
+// Appointment Statuses
+model AppointmentStatus {
+  id                Int           @id @default(autoincrement())
+  statusName        String?
+  statusDescription String?
+  createdAt         DateTime      @default(now())
+  createdBy         String?
+  Appointment       Appointment[]
+}
+
+// Appointments
+model Appointment {
+  id                         Int                   @id @default(autoincrement())
+  patient                    Patient               @relation(fields: [patientId], references: [id])
+  doctor                     Doctor                @relation(fields: [doctorId], references: [id])
+  appointmentTime            DateTime?
+  appointmentStatus          AppointmentStatus     @relation(fields: [appointmentStatusId], references: [id])
+  languageTranslatorRequired String?
+  relatedBills               Bill[]
+  relatedTransactions        Transaction[]
+  relatedPrescriptions       MedicalPrescription[]
+  patientId                  Int
+  doctorId                   Int
+  appointmentStatusId        Int
+  Meeting                    Meeting[]
+}
+
+// Transaction Statuses
+model TransactionStatus {
+  id                    Int           @id @default(autoincrement())
+  transactionStatusName String?
+  description           String?
+  commentFromManagement String?
+  Transaction           Transaction[]
+}
+
+// Transactions
+model Transaction {
+  id                    Int                  @id @default(autoincrement())
+  timeOfTransaction     DateTime?
+  purposeOfTransaction  String?
+  transactionMedia      String?
+  transactionAmount     Float?
+  transactionStatus     TransactionStatus    @relation(fields: [transactionStatusId], references: [id])
+  reference             String?
+  transactionFrom       String?
+  transactionTo         String?
+  transactionNumber     String?
+  relatedBill           Bill?                @relation(fields: [billId], references: [id])
+  MedicalReport         MedicalReport?       @relation(fields: [medicalReportId], references: [id])
+  medicalReportId       Int?
+  MedicalPrescription   MedicalPrescription? @relation(fields: [medicalPrescriptionId], references: [id])
+  medicalPrescriptionId Int?
+  Appointment           Appointment?         @relation(fields: [appointmentId], references: [id])
+  appointmentId         Int?
+  transactionStatusId   Int
+  billId                Int?
+}
+
+// Health Tips
+model HealthTip {
+  id              Int      @id @default(autoincrement())
+  title           String?
+  description     String?
+  relatedImageUrl String?
+  createdAt       DateTime @default(now())
+  createdBy       String?
+}
+
+// Action Privileges
+model ActionPrivilege {
+  id                   Int              @id @default(autoincrement())
+  createdAt            DateTime         @default(now())
+  createdBy            String?
+  actionPrivilegeCode  String?
+  descriptionOfPurpose String?
+  ManagementStaff      ManagementStaff? @relation(fields: [managementStaffId], references: [id])
+  managementStaffId    Int?
+}
+
+// Management Staffs
+model ManagementStaff {
+  id               Int               @id @default(autoincrement())
+  schedule         Schedule?         @relation(fields: [scheduleId], references: [id])
+  holiday          Holiday?          @relation(fields: [holidayId], references: [id])
+  workExperience   WorkExperience?   @relation(fields: [workExperienceId], references: [id])
+  degree           String?
+  actionPrivileges ActionPrivilege[]
+  scheduleId       Int?
+  holidayId        Int?
+  workExperienceId Int?
+}
+
+// Bills
+model Bill {
+  id                    Int                  @id @default(autoincrement())
+  billFor               String?
+  billFrom              String?
+  billPurpose           String?
+  billGeneratedBy       String?
+  relatedTransactions   Transaction[]
+  billAmount            Float?
+  billCreatedAt         DateTime             @default(now())
+  relatedChildBill      Bill?                @relation("ChildBill", fields: [billId], references: [id])
+  MedicalReport         MedicalReport?       @relation(fields: [medicalReportId], references: [id])
+  medicalReportId       Int?
+  MedicalPrescription   MedicalPrescription? @relation(fields: [medicalPrescriptionId], references: [id])
+  medicalPrescriptionId Int?
+  Appointment           Appointment?         @relation(fields: [appointmentId], references: [id])
+  appointmentId         Int?
+  parentBill            Bill?                @relation("ChildBill")
+  billId                Int?                 @unique
+}
+
+// Meetings
+model Meeting {
+  id                              Int                   @id @default(autoincrement())
+  doctor                          Doctor                @relation(fields: [doctorId], references: [id])
+  patient                         Patient               @relation(fields: [patientId], references: [id])
+  translator                      Translator            @relation(fields: [translatorId], references: [id])
+  relatedAppointment              Appointment           @relation(fields: [appointmentId], references: [id])
+  meetingWasAppointedAt           DateTime?
+  meetingWasAppointedFor          String?
+  meetingStartedAt                DateTime?
+  lastJoinedMeeting               DateTime?
+  meetingDelayTimeWithoutIssuance String?
+  meetingDelayed                  Boolean?
+  meetingEndedAt                  DateTime?
+  meetingEndedBy                  String?
+  meetingEntranceOTP              String?
+  meetingClosingOTP               String?
+  relatedPrescriptions            MedicalPrescription[]
+  relatedReports                  MedicalReport[]
+  commentFromDoctor               String?
+  commentFromPatient              String?
+  chatMedia                       String?
+  createdAt                       DateTime              @default(now())
+  doctorId                        Int
+  patientId                       Int
+  translatorId                    Int
+  appointmentId                   Int
+}
+
+// Chats
+model Chat {
+  id                  Int       @id @default(autoincrement())
+  createdId           Int
+  agendaOneId         Int
+  agendaOneUserType   String?
+  agendaTwoId         Int
+  agendaTwoUserType   String?
+  messages            Message[]
+  chatsExpirationTime DateTime?
+}
+
+// Message
+model Message {
+  id     Int       @id @default(autoincrement())
+  userId Int
+  text   String?
+  time   DateTime?
+  Chat   Chat?     @relation(fields: [chatId], references: [id])
+  chatId Int?
+}
+
+// Mail
+model Mail {
+  id               Int      @id @default(autoincrement())
+  from             String
+  to               String
+  subject          String
+  fromId           Int
+  toId             Int
+  messageBody      String
+  createdAt        DateTime @default(now())
+  mailSentProperly Boolean
+}
+
+// Language
+model Language {
+  id            Int         @id @default(autoincrement())
+  name          String
+  usedInCountry String
+  Patient       Patient?    @relation(fields: [patientId], references: [id])
+  patientId     Int?
+  Doctor        Doctor?     @relation(fields: [doctorId], references: [id])
+  doctorId      Int?
+  Intern        Intern?     @relation(fields: [internId], references: [id])
+  internId      Int?
+  Translator    Translator? @relation(fields: [translatorId], references: [id])
+  translatorId  Int?
+}
