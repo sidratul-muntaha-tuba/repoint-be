@@ -9,10 +9,10 @@ datasource db {
 
 // Users
 model User {
-  id                        Int                  @id @default(autoincrement())
+  id                        Int               @id @default(autoincrement())
   firstName                 String?
   lastName                  String?
-  email                     String               @unique
+  email                     String            @unique
   password                  String
   dateOfBirth               DateTime?
   profileCompletion         Float?
@@ -25,24 +25,21 @@ model User {
   emergencyContactNumber    String?
   profileVerificationStatus String?
   profileVerifiedBy         String?
-  userType                  UserType?            @relation(fields: [userTypeId], references: [id])
+  userTypeId                Int?
+  userType                  UserType?         @relation(fields: [userTypeId], references: [id])
   securityQuestion          String?
   securityAnswer            String?
-  createdAt                 DateTime             @default(now())
+  createdAt                 DateTime          @default(now())
   createdBy                 String?
-  updatedAt                 DateTime             @updatedAt
+  updatedAt                 DateTime          @updatedAt
   updatedBy                 String?
-  userTypeId                Int?
   Patient                   Patient[]
   Doctor                    Doctor[]
   Intern                    Intern[]
   Translator                Translator[]
-  Holiday                   Holiday[]
-  Schedule                  Schedule[]
-  medicalReportId           Int?
-  medicalPrescriptionId     Int?
-  MedicalReport             MedicalReport?       @relation(fields: [medicalReportId], references: [id])
-  MedicalPrescription       MedicalPrescription? @relation(fields: [medicalPrescriptionId], references: [id])
+  Holiday                   String?
+  Schedule                  Schedule?
+  ManagementStaff           ManagementStaff[]
 }
 
 // User Types
@@ -58,7 +55,7 @@ model UserType {
 model Patient {
   id                  Int                   @id @default(autoincrement())
   user                User                  @relation(fields: [userId], references: [id])
-  medicalPrescription MedicalPrescription[]
+  MedicalPrescription MedicalPrescription[]
   languages           Language[]
   userId              Int
   MedicalReport       MedicalReport[]
@@ -69,9 +66,8 @@ model Patient {
 // Doctors
 model Doctor {
   id                      Int                   @id @default(autoincrement())
+  userId                  Int
   user                    User                  @relation(fields: [userId], references: [id])
-  schedule                Schedule?             @relation(fields: [scheduleId], references: [id])
-  holiday                 Holiday?              @relation(fields: [holidayId], references: [id])
   workExperience          WorkExperience?       @relation(fields: [workExperienceId], references: [id])
   degree                  String?
   professionalIdUrl       String?
@@ -80,9 +76,7 @@ model Doctor {
   whatsAppContactNumber   String?
   personalAssistantNumber String?
   languages               Language[]
-  userId                  Int
   scheduleId              Int?
-  holidayId               Int?
   workExperienceId        Int?
   MedicalReport           MedicalReport[]
   MedicalPrescription     MedicalPrescription[]
@@ -140,30 +134,18 @@ model WorkExperience {
   ManagementStaff    ManagementStaff[]
 }
 
-// Holidays
-model Holiday {
-  id                      Int               @id @default(autoincrement())
-  user                    User              @relation(fields: [userId], references: [id])
-  additionalHolidaysArray String?
-  Doctor                  Doctor[]
-  userId                  Int
-  ManagementStaff         ManagementStaff[]
-}
-
 // Schedules
 model Schedule {
-  id              Int               @id @default(autoincrement())
-  user            User              @relation(fields: [userId], references: [id])
-  sat             String?
-  sun             String?
-  mon             String?
-  tue             String?
-  wed             String?
-  thu             String?
-  fri             String?
-  Doctor          Doctor[]
-  userId          Int
-  ManagementStaff ManagementStaff[]
+  id     Int     @id @default(autoincrement())
+  sat    String?
+  sun    String?
+  mon    String?
+  tue    String?
+  wed    String?
+  thu    String?
+  fri    String?
+  user   User    @relation(fields: [userId], references: [id])
+  userId Int     @unique
 }
 
 // Medical Reports
@@ -183,7 +165,6 @@ model MedicalReport {
   medicalPrescriptionId         Int?
   Meeting                       Meeting?             @relation(fields: [meetingId], references: [id])
   meetingId                     Int?
-  User                          User[]
 }
 
 // Medical Prescriptions
@@ -205,7 +186,6 @@ model MedicalPrescription {
   appointmentId            Int?
   Meeting                  Meeting?        @relation(fields: [meetingId], references: [id])
   meetingId                Int?
-  User                     User[]
 }
 
 // OTPs
@@ -289,22 +269,24 @@ model HealthTip {
 
 // Action Privileges
 model ActionPrivilege {
-  id                   Int      @id @default(autoincrement())
-  createdAt            DateTime @default(now())
+  id                   Int              @id @default(autoincrement())
+  createdAt            DateTime         @default(now())
   createdBy            String?
   actionPrivilegeCode  String?
   descriptionOfPurpose String?
   ManagementStaffIds   Int[]
+  ManagementStaff      ManagementStaff? @relation(fields: [managementStaffId], references: [id])
+  managementStaffId    Int?
 }
 
 // Management Staffs
 model ManagementStaff {
   id               Int               @id @default(autoincrement())
-  schedule         Schedule?         @relation(fields: [scheduleId], references: [id])
-  holiday          Holiday?          @relation(fields: [holidayId], references: [id])
+  userId           Int
+  user             User              @relation(fields: [userId], references: [id])
   workExperience   WorkExperience?   @relation(fields: [workExperienceId], references: [id])
   degree           String?
-  actionPrivileges ActionPrivilege[]
+  ActionPrivileges ActionPrivilege[]
   scheduleId       Int?
   holidayId        Int?
   workExperienceId Int?
@@ -343,7 +325,7 @@ model Meeting {
   meetingStartedAt                DateTime?
   lastJoinedMeeting               DateTime?
   meetingDelayTimeWithoutIssuance String?
-  meetingDelayed                  Boolean?
+  meetingDelayedForInMinutes      String?
   meetingEndedAt                  DateTime?
   meetingEndedBy                  String?
   meetingEntranceOTP              String?
